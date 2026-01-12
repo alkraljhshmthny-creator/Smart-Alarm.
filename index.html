@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Alarm - Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* دمج كود الـ CSS الخاص بك */
+        :root {
+            --background: #0f172a; --foreground: #f8fafc; --primary: #38bdf8;
+        }
+        [data-theme="sunset"] { --background: #1e0505; --primary: #f97316; }
+        [data-theme="royal_gold"] { --background: #1a1510; --primary: #fbbf24; }
+        
+        body {
+            background-color: var(--background); color: var(--foreground);
+            font-family: 'Inter', sans-serif; transition: 0.5s; margin: 0; text-align: center;
+        }
+        .text-glow { text-shadow: 0 0 10px var(--primary); }
+        .clock { font-family: 'Orbitron'; font-size: 4rem; margin: 20px 0; color: var(--primary); }
+        .card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--primary); margin: 10px; }
+        .pro-badge { background: #fbbf24; color: black; padding: 2px 8px; border-radius: 5px; font-size: 0.8rem; }
+        .hidden { display: none; }
+        .penguin-target { width: 80px; position: absolute; cursor: pointer; transition: 0.2s; }
+        button { background: var(--primary); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        
+        /* مكان الإعلان */
+        .ad-space { margin-top: 20px; border: 1px dashed #444; min-height: 50px; }
+    </style>
+</head>
+<body>
+
+    <div id="main-ui">
+        <h1 class="text-glow">نظام المنبه الذكي 🐧</h1>
+        <div class="clock" id="clock">00:00:00</div>
+
+        <div class="card">
+            <input type="time" id="alarm-time" style="padding: 10px; border-radius: 5px;">
+            <button onclick="setAlarm()">ضبط المنبه</button>
+        </div>
+
+        <div class="card">
+            <h3>اختر الثيم</h3>
+            <button onclick="setTheme('default')">فضائي (مجاني)</button>
+            <button onclick="setTheme('sunset')">غروب (مجاني)</button>
+            <button onclick="setTheme('royal_gold')">ملكي (مجاني)</button>
+            <br><br>
+            <button onclick="tryPro('cyberpunk')" style="opacity: 0.6;">سيبربانك <span class="pro-badge">PRO</span></button>
+            <button onclick="showProModal()">ترقية للبريميوم ✨</button>
+        </div>
+
+        <div class="ad-space">
+            <iframe data-aa='584089' src='//ad.a-ads.com/584089?size=320x50' style='width:320px; height:50px; border:0px; padding:0; overflow:hidden; background-color: transparent;'></iframe>
+        </div>
+    </div>
+
+    <div id="challenge-ui" class="hidden">
+        <h2 id="challenge-title">تحدي الاستيقاظ!</h2>
+        <div id="math-problem" class="hidden">
+            <p id="question"></p>
+            <input type="number" id="answer">
+            <button onclick="checkMath()">تحقق</button>
+        </div>
+        <img src="penguin.png" id="moving-penguin" class="penguin-target hidden" onclick="catchPenguin()">
+    </div>
+
+    <div id="pro-modal" class="hidden card" style="position:fixed; top:20%; left:10%; right:10%; z-index:100; background:#1e293b;">
+        <h2>اشترك في PRO 🚀</h2>
+        <p>احصل على 6 ثيمات، إزالة الإعلانات، وتحديات صعبة!</p>
+        <p style="font-size: 0.7rem; word-break: break-all;">أرسل 5$ للمحفظة: <br>CafoCvqgkJKKij6Q8xeT95zHaNsktX8Bpf5fu5NUcoRG</p>
+        <button onclick="showProModal()">إغلاق</button>
+    </div>
+
+    <script>
+        // ساعة النظام
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('ar-EG');
+            if (alarmTime === now.getHours() + ":" + now.getMinutes() && !isRinging) {
+                startAlarm();
+            }
+        }
+        setInterval(updateClock, 1000);
+
+        let alarmTime = null;
+        let isRinging = false;
+
+        function setAlarm() {
+            alarmTime = document.getElementById('alarm-time').value;
+            alert("تم ضبط المنبه! البطريق يراقبك 🐧");
+        }
+
+        function setTheme(t) {
+            document.body.setAttribute('data-theme', t);
+        }
+
+        function tryPro(t) {
+            alert("هذه معاينة لثيم البرو لمدة 10 ثواني!");
+            document.body.style.filter = "hue-rotate(90deg)";
+            setTimeout(() => document.body.style.filter = "none", 10000);
+        }
+
+        function startAlarm() {
+            isRinging = true;
+            document.getElementById('main-ui').classList.add('hidden');
+            document.getElementById('challenge-ui').classList.remove('hidden');
+            
+            // اختيار تحدي عشوائي
+            if(Math.random() > 0.5) {
+                startMathChallenge();
+            } else {
+                startPenguinHunt();
+            }
+        }
+
+        // تحدي الرياضيات
+        function startMathChallenge() {
+            const a = Math.floor(Math.random() * 20);
+            const b = Math.floor(Math.random() * 20);
+            document.getElementById('math-problem').classList.remove('hidden');
+            document.getElementById('question').innerText = `حل المسألة: ${a} + ${b}`;
+            window.correctAnswer = a + b;
+        }
+
+        function checkMath() {
+            if (parseInt(document.getElementById('answer').value) === window.correctAnswer) {
+                stopAlarm();
+            }
+        }
+
+        // تحدي صيد البطريق
+        let catchCount = 0;
+        function startPenguinHunt() {
+            document.getElementById('moving-penguin').classList.remove('hidden');
+            movePenguin();
+        }
+
+        function movePenguin() {
+            const p = document.getElementById('moving-penguin');
+            p.style.top = Math.random() * 80 + "vh";
+            p.style.left = Math.random() * 80 + "vw";
+        }
+
+        function catchPenguin() {
+            catchCount++;
+            if(catchCount >= 5) {
+                stopAlarm();
+            } else {
+                movePenguin();
+            }
+        }
+
+        function stopAlarm() {
+            isRinging = false;
+            document.getElementById('challenge-ui').classList.add('hidden');
+            document.getElementById('main-ui').classList.remove('hidden');
+            alert("أحسنت! استمتع بيومك 🐧🌹");
+        }
+
+        function showProModal() {
+            document.getElementById('pro-modal').classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
+
